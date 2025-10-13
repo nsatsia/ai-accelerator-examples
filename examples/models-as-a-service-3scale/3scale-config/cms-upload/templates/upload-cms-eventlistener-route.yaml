@@ -1,0 +1,11 @@
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: upload-cms
+spec:
+  to:
+    kind: Service
+    name: el-upload-cms
+  tls:
+    termination: edge

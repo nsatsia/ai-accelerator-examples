@@ -17,7 +17,7 @@ choose_example(){
     echo "Choose an example you wish to deploy?"
     PS3="Please enter a number to select an example folder: "
 
-    select chosen_example in $(find "${examples_dir}" -mindepth 1 -maxdepth 1 -type d -exec basename {} \;); 
+    select chosen_example in $(find "${examples_dir}" -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | sort);
     do
     test -n "${chosen_example}" && break;
     echo ">>> Invalid Selection";
@@ -40,20 +40,20 @@ choose_example_kustomize_option(){
 
     # Find the first directory matching the pattern ${chosen_example_path}/*/overlays
     overlays_parent_dir=$(find "${chosen_example_path}" -mindepth 2 -maxdepth 2 -type d -name "overlays" | head -n 1)
-    
+
     if [ -n "$overlays_parent_dir" ]; then
         overlays_dir="$overlays_parent_dir"
-        
+
         echo "Found overlays directory: ${overlays_dir}"
-        
+
         overlay_count=$(find "${overlays_dir}" -mindepth 1 -maxdepth 1 -type d | wc -l)
         if [ "$overlay_count" -gt 1 ]; then
             # multiple overlay options found
             # let the user choose which one to deploy
             echo "Multiple overlay options found in ${overlays_dir}:"
             PS3="Choose an option you wish to deploy?"
-            
-            select chosen_option in $(find "${overlays_dir}" -mindepth 1 -maxdepth 1 -type d -exec basename {} \;);
+
+            select chosen_option in $(find "${overlays_dir}" -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | sort);
             do
                 test -n "${chosen_option}" && break;
                 echo ">>> Invalid Selection";
@@ -114,12 +114,12 @@ deploy_example(){
 
 set_repo_url(){
     GITHUB_URL=$(get_git_basename)
-    
+
     echo
     echo "Current repository URL: ${GITHUB_URL}"
     echo
     read -r -p "Press Enter to use this URL, or enter a new repository URL: " user_input
-    
+
     if [ -n "$user_input" ]; then
         GITHUB_URL="$user_input"
         echo "Updated repository URL to: ${GITHUB_URL}"
@@ -135,7 +135,7 @@ set_repo_branch(){
     echo "Current repository branch: ${GIT_BRANCH}"
     echo
     read -r -p "Press Enter to use this branch, or enter a new repository branch: " user_input
-    
+
     if [ -n "$user_input" ]; then
         GIT_BRANCH="$user_input"
         echo "Updated repository branch to: ${GIT_BRANCH}"

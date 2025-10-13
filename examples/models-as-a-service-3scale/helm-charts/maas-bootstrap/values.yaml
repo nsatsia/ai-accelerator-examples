@@ -13,7 +13,8 @@ threeScale:
   path: examples/models-as-a-service-3scale/3scale
   channel: threescale-2.15
   startingCSV: 3scale-operator.v0.12.4
-  storageClassName: "ocs-storagecluster-cephfs"
+#  storageClassName: "ocs-storagecluster-cephfs"
+  storageClassName: ""
 
 cmsUpload:
   path: examples/models-as-a-service-3scale/3scale-config/cms-upload

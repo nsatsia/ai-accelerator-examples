@@ -21,6 +21,7 @@ apimanager:
     name: llm-metrics
     version: 0.1
 
+# TODO: Comment this out when the 3scale Health Checks are merged into `ai-accelerator`
 apimanagerChecker:
   name: "apimanager-checker"
   syncwave: "3"

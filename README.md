@@ -92,6 +92,7 @@ helm install ai-examples ./charts/argocd-appgenerator -n openshift-gitops \
 ```bash
 # Validate Kustomize manifests and Helm charts
 ./scripts/validate_manifests.sh
+./scripts/validate_charts.sh
 
 # Install Python dependencies for linting
 pip install -r requirements.txt

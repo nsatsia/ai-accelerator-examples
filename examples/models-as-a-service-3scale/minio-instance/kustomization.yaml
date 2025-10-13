@@ -5,12 +5,14 @@ namespace: minio
 
 resources:
   - namespace.yaml
+  - secret.yaml
+  - create-bucket-job.yaml
 
 helmCharts:
   - name: minio
     releaseName: minio-release
     namespace: minio
-    version: 0.1.2
+    version: 0.1.3
     repo: https://redhat-ai-services.github.io/helm-charts/
     skipTests: true
     valuesFile: values.yaml

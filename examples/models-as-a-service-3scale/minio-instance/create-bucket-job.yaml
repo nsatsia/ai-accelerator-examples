@@ -3,9 +3,9 @@ kind: Job
 metadata:
   name: minio-create-bucket
   annotations:
-    "helm.sh/hook": "post-install,post-upgrade"
-    "helm.sh/hook-delete-policy": "before-hook-creation,hook-succeeded"
-    "helm.sh/hook-weight": "6"
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+    argocd.argoproj.io/sync-wave: "10"
 spec:
   completions: 1
   template:
@@ -13,8 +13,24 @@ spec:
       name: minio-create-bucket
     spec:
       restartPolicy: Never
+      initContainers:
+      - name: wait-for-minio-service
+        image: wait4x/wait4x
+        command:
+          - "wait4x"
+          - "tcp"
+          - "minio.minio.svc:9000"
+          - "--timeout"
+          - "60s"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+          limits:
+            cpu: 100m
+            memory: 100Mi
       containers:
-      - name: minio-bucket
+      - name: create-bucket
         image: quay.io/minio/mc
         env:
           - name: MC_CONFIG_DIR
@@ -24,12 +40,12 @@ spec:
           - name: MINIO_ACCESS_KEY
             valueFrom:
               secretKeyRef:
-                name: minio
+                name: minio-s3-auth
                 key: AWS_ACCESS_KEY_ID
           - name: MINIO_SECRET_KEY
             valueFrom:
               secretKeyRef:
-                name: minio
+                name: minio-s3-auth
                 key: AWS_SECRET_ACCESS_KEY
           - name: MINIO_BUCKET
             value: "3scale-maas"
@@ -43,3 +59,10 @@ spec:
               echo "Creating bucket" && \
               mc mb "minio-3scale/$MINIO_BUCKET" --ignore-existing && \
               echo "Bucket created"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+          limits:
+            cpu: 100m
+            memory: 100Mi

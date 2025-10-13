@@ -20,13 +20,9 @@ This example automates the deployment and configuration of the following compone
 
 ## Storage Requirements
 
-**3scale** supports various storage backends including S3. For the specific requirement of RWX persistent volumes, options include Network File System (NFS) or **OpenShift Data Foundation (ODF)**.
+**3scale** supports various storage backends including S3. For the specific requirement of `RWX` persistent volumes, options include Network File System (NFS) or **OpenShift Data Foundation (ODF)**.
 
-This example is configured to use **OpenShift Data Foundation (ODF)** as the default provider for the `RWX` storage class.
-
-If **ODF** is not available, the example allows the user to provide a pre-configured storage class on the cluster capable of provisioning `RWX` volumes. To use a preconfigured storage class, please provide the storage class name in the `threeScale.storageClassName` parameter in the [bootstrap chart](examples/models-as-a-service-3scale/helm-charts/maas-bootstrap/values.yaml) before proceeding.
-
-If you decide to use S3-compatible storage, this example can deploy a simple **MinIO** instance to be used with **3scale**. To enable the **MinIO** deployment, set the parameter `threeScale.storageClassName` to blank (`""`).
+This example is configured to use **MinIO** as a S3-compatible storage provider for 3scale. If **ODF** is available, the user can provide a pre-configured storage class on the cluster capable of provisioning `RWX` volumes. To use a preconfigured storage class, please provide the storage class name in the `threeScale.storageClassName` parameter in the [bootstrap chart](examples/models-as-a-service-3scale/helm-charts/maas-bootstrap/values.yaml) before proceeding.
 
 ## Prerequisites
 
@@ -192,6 +188,16 @@ oc logs -n model-serving deployment/llama-32-1b-instruct-cpu
 # Check developer user status
 oc get developeruser -n 3scale
 ```
+
+### Triggering the update of the 3scale Developer CMS portal
+
+```bash
+curl -vkL -X POST "https://upload-cms-3scale.<cluster-domain>/" \
+  -H "Content-Type: application/json" \
+  -d '{ "tenant": "maas" }'
+```
+
+This will start the pipeline `upload-cms` and refresh the developer portal with the latest version available on the git repository.
 
 ## Cleanup
 

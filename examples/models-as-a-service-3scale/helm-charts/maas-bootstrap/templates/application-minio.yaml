@@ -5,8 +5,6 @@ kind: Application
 metadata:
   name: minio
   namespace: {{ .Values.namespace | default .Release.Namespace }}
-  annotations:
-    argocd.argoproj.io/sync-options: Validate=false  
   labels:
       component: bootstrap
 spec:
@@ -18,4 +16,6 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: minio
+  syncPolicy:
+    automated: {}
 {{- end }}
