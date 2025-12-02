@@ -14,13 +14,17 @@ choose_example(){
     examples_dir=${EXAMPLES_DIR}
 
     echo
-    echo "Choose an example you wish to deploy?"
-    PS3="Please enter a number to select an example folder: "
+    echo "Choose an example you wish to deploy:"
+    PS3="Please enter a number to select an example folder (enter q to exit): "
 
     select chosen_example in $(find "${examples_dir}" -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | sort);
     do
-    test -n "${chosen_example}" && break;
-    echo ">>> Invalid Selection";
+        # Check if user wants to quit
+        if [[ "$REPLY" == [qQ] ]]; then
+            return 2 # exit code for q
+        fi
+        test -n "${chosen_example}" && break;
+        echo ">>> Invalid Selection";
     done
 
     echo "You selected ${chosen_example}"
@@ -38,35 +42,29 @@ choose_example_kustomize_option(){
 
     echo
 
-    # Find the first directory matching the pattern ${chosen_example_path}/*/overlays
-    overlays_parent_dir=$(find "${chosen_example_path}" -mindepth 2 -maxdepth 2 -type d -name "overlays" | head -n 1)
-
-    if [ -n "$overlays_parent_dir" ]; then
-        overlays_dir="$overlays_parent_dir"
-
-        echo "Found overlays directory: ${overlays_dir}"
-
-        overlay_count=$(find "${overlays_dir}" -mindepth 1 -maxdepth 1 -type d | wc -l)
-        if [ "$overlay_count" -gt 1 ]; then
-            # multiple overlay options found
+    # Find all unique overlay options across all overlays directories
+    all_overlay_options=$(find "${chosen_example_path}" -mindepth 3 -maxdepth 3 -type d -path "*/overlays/*" -exec basename {} \; | sort -u)
+    
+    if [ -n "$all_overlay_options" ]; then
+        unique_overlay_count=$(echo "$all_overlay_options" | wc -l)
+        
+        if [ "$unique_overlay_count" -gt 1 ]; then
+            # Multiple unique overlay options found across all directories
             # let the user choose which one to deploy
-            echo "Multiple overlay options found in ${overlays_dir}:"
-            PS3="Choose an option you wish to deploy?"
-
-            select chosen_option in $(find "${overlays_dir}" -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | sort);
+            echo "Multiple unique overlay options found:"
+            echo "$all_overlay_options"
+            echo
+            PS3="Choose an option you wish to deploy:"
+            select chosen_option in $all_overlay_options;
             do
                 test -n "${chosen_option}" && break;
                 echo ">>> Invalid Selection";
             done
             echo "You selected ${chosen_option}"
-        elif [ "$overlay_count" -eq 1 ]; then
-            # one overlay option found
-            # use the default one
-            chosen_option=$(basename "$(find "${overlays_dir}" -mindepth 1 -maxdepth 1 -type d)")
-            echo "One overlay option found in ${overlays_dir}: ${chosen_option}"
-        else
-            echo "No overlay options found in ${overlays_dir}"
-            exit 2
+        elif [ "$unique_overlay_count" -eq 1 ]; then
+            # Only one unique overlay option found
+            chosen_option="$all_overlay_options"
+            echo "Only one unique overlay option found: ${chosen_option}"
         fi
 
         CHOSEN_EXAMPLE_OPTION_PATH="${chosen_example_path}/*/overlays/${chosen_option}"
@@ -80,6 +78,7 @@ choose_example_kustomize_option(){
             exit 2
         fi
     fi
+
 }
 
 deploy_example(){
@@ -147,9 +146,17 @@ set_repo_branch(){
 main(){
     set_repo_url
     set_repo_branch
-    choose_example
-    choose_example_kustomize_option "${CHOSEN_EXAMPLE_PATH}"
-    deploy_example  "${CHOSEN_EXAMPLE_PATH}" "${CHOSEN_EXAMPLE_OPTION_PATH}"
+
+    while true; do
+        exit_code=0
+        choose_example || exit_code=$?
+        if [ "${exit_code:-0}" -eq 2 ]; then # user selected q/Q
+            echo "Exiting..."
+            break
+        fi
+        choose_example_kustomize_option "${CHOSEN_EXAMPLE_PATH}"
+        deploy_example  "${CHOSEN_EXAMPLE_PATH}" "${CHOSEN_EXAMPLE_OPTION_PATH}"
+    done
 }
 
 # check_oc_login
