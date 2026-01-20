@@ -108,7 +108,8 @@ deploy_example(){
         --set targetRevision="${GIT_BRANCH}" \
         --set clusterDomainUrl="${CLUSTER_DOMAIN_NAME}" \
         --set "kustomizeDirectories[0].path=${chosen_example_overlay_path}" \
-        --set "helmDirectories[0].path=${chosen_example_path}/helm-charts/**"
+        --set "helmDirectories[0].path=${chosen_example_path}/helm-charts/**" \
+        --set tolerations=null
 }
 
 set_repo_url(){
